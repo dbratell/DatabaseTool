@@ -4,22 +4,27 @@ import javax.swing.tree.TreeNode;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
-public class CatalogNode implements TreeNode
+/**
+ * Created by IntelliJ IDEA.
+ * User: Bratell
+ * Date: 2003-aug-12
+ * Time: 21:15:30
+ * To change this template use Options | File Templates.
+ */
+public abstract class AbstractTablesTypeNode implements TreeNode
 {
-    private RootNode mParent;
-    private String mCatalogName;
-    private TreeNode[] mChildren;
+    private final CatalogNode mParent;
+    protected final NavigationTreeModel mNavigationTreeModel;
+    protected final String mCatalogName;
+    protected TableNode[] mTables;
 
-    public CatalogNode(NavigationTreeModel navigationTreeModel,
-                       RootNode parent, String catalogName)
+    public AbstractTablesTypeNode(NavigationTreeModel navigationTreeModel,
+                                  CatalogNode parent,
+                                  String catalogName)
     {
-        mChildren = new TreeNode[3];
-        mChildren[0] = new TablesNode(navigationTreeModel, this, catalogName);
-        mChildren[1] = new ViewsNode(navigationTreeModel, this, catalogName);
-        mChildren[2] = new NonTablesViewsNode(navigationTreeModel, this, catalogName);
+        mNavigationTreeModel = navigationTreeModel;
         mParent = parent;
         mCatalogName = catalogName;
-
     }
 
     /**
@@ -28,8 +33,11 @@ public class CatalogNode implements TreeNode
      */
     public TreeNode getChildAt(int childIndex)
     {
-        return mChildren[childIndex];
+        ensureChildren();
+        return mTables[childIndex];
     }
+
+    protected abstract void ensureChildren();
 
     /**
      * Returns the number of children <code>TreeNode</code>s the receiver
@@ -37,7 +45,8 @@ public class CatalogNode implements TreeNode
      */
     public int getChildCount()
     {
-        return mChildren.length;
+        ensureChildren();
+        return mTables.length;
     }
 
     /**
@@ -50,9 +59,11 @@ public class CatalogNode implements TreeNode
 
     public int getIndex(TreeNode treeNode)
     {
-        for (int i = 0; i < mChildren.length; i++)
+        ensureChildren();
+
+        for (int i = 0; i < mTables.length; i++)
         {
-            if (treeNode == mChildren[i])
+            if (treeNode == mTables[i])
             {
                 return i;
             }
@@ -81,30 +92,37 @@ public class CatalogNode implements TreeNode
      */
     public Enumeration children()
     {
+        ensureChildren();
         return new Enumeration() {
             int i = 0;
             public boolean hasMoreElements()
             {
-                return i <= mChildren.length;
+                return i <= mTables.length;
             }
             public Object nextElement()
             {
-                if (i < mChildren.length)
+                if (i < mTables.length)
                 {
-                    return mChildren[i++];
+                    return mTables[i++];
                 }
                 throw new NoSuchElementException();
             }
         };
     }
 
-    public String toString()
-    {
-        return mCatalogName;
-    }
+    public abstract String toString();
 
     public String getCatalogName()
     {
         return mCatalogName;
+    }
+    protected boolean isTableType(String type)
+    {
+        return "TABLE".equals(type);
+    }
+
+    protected boolean isViewType(String type)
+    {
+        return "VIEW".equals(type);
     }
 }
