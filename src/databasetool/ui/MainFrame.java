@@ -14,6 +14,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JSplitPane;
 import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.event.TreeSelectionListener;
@@ -51,12 +52,17 @@ public class MainFrame extends JFrame
     private NavigationTree mNavigationTree;
     private JSplitPane mDataProgressSplitter;
     private JSplitPane mTreeSplitter;
+    private ConstraintsPanel mConstraintsPanel;
+    private ColumnsPanel mColumnsPanel;
+    private DataTable mDataPanel;
     private static final String FRAME_WIDTH_PREF = "frameWidth";
     private static final String FRAME_HEIGHT_PREF = "frameHeight";
     private static final String TABLE_SPLITTER_POS_PREF = "TableSplitter";
     private static final String TREE_SPLITTER_POS_PREF = "TreeSplitter";
-    private SelectionInfoPane mSelectionInfoPane;
+//    private SelectionInfoPane mSelectionInfoPane;
+    private JPanel mSelectionInfoPane;
     private StatusBar mStatusBar;
+    private IndexesPanel mIndexesPanel;
 
     public MainFrame()
     {
@@ -111,7 +117,7 @@ public class MainFrame extends JFrame
         mNavigationTree = new NavigationTree(mProgressArea);
         //Listen for when the selection changes.
         setTreeSelectionHandler();
-        mSelectionInfoPane = new SelectionInfoPane(mProgressArea, mStatusBar);
+        mSelectionInfoPane = new JPanel(new BorderLayout()); // SelectionInfoPane(mProgressArea, mStatusBar);
         mDataProgressSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                                    mProgressArea,
                                    mSelectionInfoPane);
@@ -178,8 +184,7 @@ public class MainFrame extends JFrame
                     String scheme = tableNode.getScheme();
                     String catalogName = tableNode.getCatalogName();
 
-                    mSelectionInfoPane.displayTable(mConnection, scheme,
-                                            catalogName, tableName);
+                    readTable(catalogName, scheme, tableName);
                 }
                 else if (node instanceof IndexesForTableNode)
                 {
@@ -232,67 +237,62 @@ public class MainFrame extends JFrame
         });
     }
 
+    private void readTable(String catalogName, String scheme, String tableName)
+    {
+        if (mDataPanel == null)
+        {
+            mDataPanel = new DataTable(mProgressArea, mStatusBar);
+        }
+
+        mSelectionInfoPane.removeAll();
+        mSelectionInfoPane.add(mDataPanel);
+        mDataPanel.setVisible(true);
+        mDataPanel.displayTable(mConnection, catalogName, scheme, tableName);
+
+//        mSelectionInfoPane.displayTable(mConnection, scheme,
+//                                catalogName, tableName);
+    }
+
     private void readConstraints(String catalogName, String schemeName,
                              String tableName)
     {
-        mProgressArea.appendProgress("Not implemented");
+        if (mConstraintsPanel == null)
+        {
+            mConstraintsPanel = new ConstraintsPanel(mProgressArea);
+        }
+        mSelectionInfoPane.removeAll();
+        mSelectionInfoPane.add(mConstraintsPanel);
+        mConstraintsPanel.setVisible(true);
+        mConstraintsPanel.loadConstraints(mConnection, catalogName, schemeName,
+                                          tableName);
     }
 
     private void readColumns(String catalogName, String schemeName,
                              String tableName)
     {
-        mProgressArea.appendProgress("Not implemented");
+        if (mColumnsPanel == null)
+        {
+            mColumnsPanel = new ColumnsPanel(mProgressArea);
+        }
+        mSelectionInfoPane.removeAll();
+        mSelectionInfoPane.add(mColumnsPanel);
+        mColumnsPanel.setVisible(true);
+        mColumnsPanel.loadColumns(mConnection, catalogName, schemeName,
+                                          tableName);
     }
 
     private void readIndexes(String catalogName, String schemeName,
                              String tableName)
     {
-        try
+        if (mIndexesPanel == null)
         {
-            DatabaseMetaData metaData = mConnection.getMetaData();
-            ResultSet rs = metaData.getIndexInfo(catalogName, schemeName,
-                                                 tableName, false, true);
-            while (rs.next())
-            {
-                short type = rs.getShort(7);
-                String column = rs.getString(9);
-
-                String text;
-                if (type == DatabaseMetaData.tableIndexStatistic)
-                {
-                    int cardinality = rs.getInt(11);
-                    int pages = rs.getInt(12);
-                    if (column != null)
-                    {
-                        text = "Statistics for column "+column+
-                               ": cardinality: "+cardinality+
-                           ", pages: "+pages;
-                    }
-                    else
-                    {
-                        text = "Statistics: cardinality: "+cardinality+
-                           ", pages: "+pages;
-                    }
-                }
-                else
-                {
-                    boolean unique = rs.getBoolean(4);
-                    String name = rs.getString(6);
-                    text = "Index "+name+" at column "+column + " " +
-                                  (unique ? "unique" : "not unique") + " type: " +
-                                  indexTypeToString(type);
-                }
-                mProgressArea.appendProgress(text);
-            }
-            rs.close();
-
-
-
+            mIndexesPanel = new IndexesPanel(mProgressArea);
         }
-        catch (SQLException e)
-        {
-            mProgressArea.appendProgress(e);
-        }
+        mSelectionInfoPane.removeAll();
+        mSelectionInfoPane.add(mIndexesPanel);
+        mIndexesPanel.setVisible(true);
+        mIndexesPanel.loadIndexes(mConnection, catalogName, schemeName,
+                                          tableName);
     }
 
     private String indexTypeToString(short type)
