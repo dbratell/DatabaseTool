@@ -48,16 +48,6 @@ public class ConstraintsPanel extends JPanel
                     importedKeys.close();
                 }
             }
-            model.setColumnIdentifiers(new Object[] {
-                "Name", "Description"
-            });
-
-            model.addRow(new Object[] {
-                "Kalle", "Fem bokstäver"
-            });
-            model.addRow(new Object[] {
-                "Olle", "Fyra bokstäver"
-            });
         }
         catch (SQLException e)
         {

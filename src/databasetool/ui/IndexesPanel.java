@@ -74,8 +74,6 @@ public class IndexesPanel extends JPanel
             mProgress.appendProgress(e);
         }
         mIndexesTable.setModel(model);
-        mIndexesTable.invalidate();
-        validate();
     }
 
     private static String indexTypeToString(short type)

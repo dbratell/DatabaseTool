@@ -10,9 +10,13 @@ public class TableNode implements TreeNode
     private NavigationTreeModel mNavigationTreeModel;
     private TreeNode mParent;
     private String mTableType;
-    private IndexesForTableNode mIndexNode;
-    private ConstraintsForTableNode mConstraintNode;
-    private ColumnsForTableNode mColumnNode;
+    private TableMeta.IndexesForTableNode mIndexNode;
+    private TableMeta.ConstraintsForTableNode mConstraintNode;
+    private TableMeta.ColumnsForTableNode mColumnNode;
+    private TableMeta.ColumnPrivilegesNode mColumnPrivilegesNode;
+    private TableMeta.ExportedKeysNode mExportedKeysNode;
+    private TableMeta.PrimaryKeysNode mPrimaryKeysNode;
+    private TableMeta.TablePrivilegesNode mTablePrivilegesNode;
     private final TreeNode[] mChildren;
 
     public TableNode(NavigationTreeModel navigationTreeModel,
@@ -22,13 +26,27 @@ public class TableNode implements TreeNode
         mParent = parent;
         mTableName = tableName;
         mTableType = tableType;
-        mIndexNode = new IndexesForTableNode(navigationTreeModel,
+        mIndexNode = new TableMeta.IndexesForTableNode(navigationTreeModel,
                                              this, tableName, tableType);
-        mConstraintNode = new ConstraintsForTableNode(navigationTreeModel,
+        mConstraintNode = new TableMeta.ConstraintsForTableNode(navigationTreeModel,
                                              this, tableName, tableType);
-        mColumnNode = new ColumnsForTableNode(navigationTreeModel,
+        mColumnNode = new TableMeta.ColumnsForTableNode(navigationTreeModel,
                                              this, tableName, tableType);
-        mChildren = new TreeNode[] {mColumnNode, mIndexNode, mConstraintNode};
+        mColumnPrivilegesNode = new TableMeta.ColumnPrivilegesNode(
+                navigationTreeModel, parent, tableName, tableType);
+        mExportedKeysNode = new TableMeta.ExportedKeysNode(
+                navigationTreeModel, parent, tableName, tableType);
+        mPrimaryKeysNode = new TableMeta.PrimaryKeysNode(
+                navigationTreeModel, parent, tableName, tableType);
+        mTablePrivilegesNode = new TableMeta.TablePrivilegesNode(
+                navigationTreeModel, parent, tableName, tableType);
+
+        mChildren = new TreeNode[] {mColumnNode, mIndexNode, mConstraintNode,
+            mColumnPrivilegesNode,
+            mExportedKeysNode,
+            mPrimaryKeysNode,
+            mTablePrivilegesNode,
+        };
     }
 
     /**

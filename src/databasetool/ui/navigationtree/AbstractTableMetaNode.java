@@ -3,19 +3,20 @@ package databasetool.ui.navigationtree;
 import javax.swing.tree.TreeNode;
 import java.util.Enumeration;
 
-public class IndexesForTableNode implements TreeNode
+public abstract class AbstractTableMetaNode implements TreeNode
 {
-    private String mTableName;
-    private NavigationTreeModel mNavigationTreeModel;
-    private TreeNode mParent;
-    private String mTableType;
+    protected String mTableName;
+    protected NavigationTreeModel mNavigationTreeModel;
+    protected TreeNode mParent;
+    protected String mTableType;
 
-    public IndexesForTableNode(NavigationTreeModel navigationTreeModel,
-                     TreeNode parent, String tableName, String tableType)
+    public AbstractTableMetaNode(String tableName,
+                                   NavigationTreeModel navigationTreeModel,
+                                   TreeNode parent, String tableType)
     {
+        mTableName = tableName;
         mNavigationTreeModel = navigationTreeModel;
         mParent = parent;
-        mTableName = tableName;
         mTableType = tableType;
     }
 
@@ -74,10 +75,8 @@ public class IndexesForTableNode implements TreeNode
         return null;
     }
 
-    public String toString()
-    {
-        return "Index";
-    }
+    public abstract String toString();
+
     public String getTableName()
     {
         return mTableName;

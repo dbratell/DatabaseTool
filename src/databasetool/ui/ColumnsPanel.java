@@ -74,13 +74,11 @@ public class ColumnsPanel extends JPanel
             mProgress.appendProgress(e);
         }
         mColumnsTable.setModel(model);
-        mColumnsTable.invalidate();
-        validate();
     }
 
     private static String getJDBCTypeAsString(int jdbcType)
     {
-        // XXX Don't do this on demand 
+        // XXX Don't do this on demand
         try
         {
             Field[] fields = java.sql.Types.class.getFields();
