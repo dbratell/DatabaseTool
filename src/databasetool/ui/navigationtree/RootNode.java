@@ -14,12 +14,14 @@ import java.sql.SQLException;
 
 public class RootNode implements TreeNode
 {
-    TreeNode[] mCatalogs = new TreeNode[0];
+    private final DatabaseInfoNode mInfoNode;
+    private TreeNode[] mCatalogs = new TreeNode[0];
     private NavigationTreeModel mNavigationTreeModel;
 
     public RootNode(NavigationTreeModel navigationTreeModel)
     {
         mNavigationTreeModel = navigationTreeModel;
+        mInfoNode = new DatabaseInfoNode(navigationTreeModel, this);
     }
 
     /**
@@ -28,7 +30,11 @@ public class RootNode implements TreeNode
      */
     public TreeNode getChildAt(int childIndex)
     {
-        return mCatalogs[childIndex];
+        if (childIndex == 0)
+        {
+            return mInfoNode;
+        }
+        return mCatalogs[childIndex-1];
     }
 
     /**
@@ -37,7 +43,7 @@ public class RootNode implements TreeNode
      */
     public int getChildCount()
     {
-        return mCatalogs.length;
+        return mCatalogs.length+1;
     }
 
     /**
@@ -50,12 +56,17 @@ public class RootNode implements TreeNode
 
     public int getIndex(TreeNode treeNode)
     {
+        if (treeNode == mInfoNode)
+        {
+            return 0;
+        }
+
         for (int i = 0; i < mCatalogs.length; i++)
         {
             TreeNode catalog = mCatalogs[i];
             if (catalog == treeNode)
             {
-                return i;
+                return i+1;
             }
         }
 
@@ -84,13 +95,18 @@ public class RootNode implements TreeNode
     public Enumeration children()
     {
         return new Enumeration() {
-            int i = 0;
+            int i = -1;
             public boolean hasMoreElements()
             {
-                return i <= mCatalogs.length;
+                return i < mCatalogs.length;
             }
             public Object nextElement()
             {
+                if (i == -1)
+                {
+                    i++;
+                    return mInfoNode;
+                }
                 if (i < mCatalogs.length)
                 {
                     return mCatalogs[i++];

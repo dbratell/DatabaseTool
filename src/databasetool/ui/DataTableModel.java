@@ -14,17 +14,14 @@ import java.util.ArrayList;
 public class DataTableModel extends AbstractTableModel
 {
     private ResultSet mResultSet;
-//    private ArrayList mData = new ArrayList();
     private ArrayList mLabels = new ArrayList();
     ProgressArea mProgressArea;
-    private StatusBar mStatusBar;
     private int mRowCount;
     private PreparedStatement mCurrentStatement;
 
-    public DataTableModel(ProgressArea progressArea, StatusBar statusBar)
+    public DataTableModel(ProgressArea progressArea)
     {
         mProgressArea = progressArea;
-        mStatusBar = statusBar;
     }
 
     public int getRowCount()
@@ -50,7 +47,6 @@ public class DataTableModel extends AbstractTableModel
             mProgressArea.appendProgress(e);
             return "<null>";
         }
-//        return ((ArrayList)mData.get(rowIndex)).get(columnIndex);
     }
 
     public void loadTable(Connection connection, String scheme,
@@ -70,7 +66,6 @@ public class DataTableModel extends AbstractTableModel
                 mCurrentStatement = null;
             }
             mProgressArea.appendProgress("Loading from table " + tableName);
-            String oldCatalog = connection.getCatalog();
             mProgressArea.appendProgress("Setting catalog to " + catalogName);
             connection.setCatalog(catalogName);
 
@@ -81,16 +76,14 @@ public class DataTableModel extends AbstractTableModel
             mProgressArea.appendProgress("Will load " + mRowCount + " rows");
 
 
-//            ProgressMonitor progress = new ProgressMonitor(mProgressArea,
-//                                                           "Loading table",
-//                                                           null, 0, rowCount);
-            mStatusBar.enableProgress(true);
             String sql = "SELECT * FROM [" + tableName + "]";
+            mProgressArea.appendProgress("Running "+sql);
             time = new TimeTracker(sql);
 
             try
             {
                 DatabaseMetaData metaData = connection.getMetaData();
+                mProgressArea.appendProgress("IdentifierQuoteString="+metaData.getIdentifierQuoteString());
                 int resultSetType = getBestResultSetType(metaData);
                 int concurrency = getBestConcurrency(metaData, resultSetType);
                 int holdability = getBestHoldability(metaData);
@@ -143,12 +136,6 @@ public class DataTableModel extends AbstractTableModel
             finally
             {
                 mProgressArea.appendProgress(time.toString());
-                mStatusBar.setEnabled(false);
-            }
-            mProgressArea.appendProgress("Resetting catalog to " + oldCatalog);
-            if (oldCatalog != null)
-            {
-//                connection.setCatalog(oldCatalog);
             }
             fireTableStructureChanged();
         }

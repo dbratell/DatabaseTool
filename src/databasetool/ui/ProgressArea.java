@@ -1,9 +1,12 @@
 package databasetool.ui;
 
+import databasetool.JDBCUtil;
+
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 
 public class ProgressArea extends JScrollPane
 {
@@ -35,10 +38,22 @@ public class ProgressArea extends JScrollPane
         }
     }
 
-    public void appendProgress(Exception e)
+    public void appendProgress(Throwable e)
     {
         StringWriter sw = new StringWriter(400);
         PrintWriter pw = new PrintWriter(sw);
+        pw.println("SQL Error Code: ");
+        e.printStackTrace(pw);
+        appendProgress(sw.toString());
+    }
+
+    public void appendProgress(SQLException e)
+    {
+        StringWriter sw = new StringWriter(400);
+        PrintWriter pw = new PrintWriter(sw);
+        String sqlState = e.getSQLState();
+        pw.println("SQL Error Code: " + sqlState + " - " +
+                   JDBCUtil.sqlStateToString(sqlState));
         e.printStackTrace(pw);
         appendProgress(sw.toString());
     }

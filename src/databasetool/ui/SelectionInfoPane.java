@@ -18,7 +18,7 @@ public class SelectionInfoPane extends JTabbedPane
     {
         mProgressArea = progressArea;
 
-        mDataTable = new DataTable(progressArea, statusBar);
+        mDataTable = new DataTable(progressArea);
         addTab("Data", new JScrollPane(mDataTable));
 
         mMetaTable = new MetaTable(progressArea, statusBar);
@@ -32,7 +32,7 @@ public class SelectionInfoPane extends JTabbedPane
     public void displayTable(Connection connection, String scheme,
                              String catalogName, String tableName)
     {
-        mDataTable.displayTable(connection, scheme, catalogName, tableName);
+        mDataTable.displayTable(scheme, catalogName, tableName);
         mMetaTable.displayTable(connection, scheme, catalogName, tableName);
         try
         {
