@@ -1,0 +1,8 @@
+Main-Class: databasetool.DatabaseTool
+Name: DatabaseTool
+Specification-Title: "Database Tool"
+Specification-Version: "1.0"
+Specification-Vendor: "Daniel Bratell"
+Implementation-Title: "databasetool"
+Implementation-Version: "2003-08-03"
+Implementation-Vendor: "Daniel Bratell"

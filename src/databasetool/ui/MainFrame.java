@@ -7,6 +7,10 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JSplitPane;
 import javax.swing.JScrollPane;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
 import java.util.prefs.Preferences;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -37,13 +41,21 @@ public class MainFrame extends JFrame
     private JTextField mSQLStatement;
     private JButton mExecuteButton;
     private NavigationTree mNavigationTree;
+    private JSplitPane mDataProgressSplitter;
+    private JSplitPane mTreeSplitter;
+    private static final String FRAME_WIDTH_PREF = "frameWidth";
+    private static final String FRAME_HEIGHT_PREF = "frameHeight";
+    private static final String TABLE_SPLITTER_POS_PREF = "TableSplitter";
+    private static final String TREE_SPLITTER_POS_PREF = "TreeSplitter";
+    private SelectionInfoPane mSelectionInfoPane;
+    private StatusBar mStatusBar;
 
     public MainFrame()
     {
         super("Database tool");
 
-        setSize(USER_PREFS.getInt("frameWidth", 400),
-                USER_PREFS.getInt("frameHeight", 300));
+        setSize(USER_PREFS.getInt(FRAME_WIDTH_PREF, 400),
+                USER_PREFS.getInt(FRAME_HEIGHT_PREF, 300));
 
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -60,8 +72,13 @@ public class MainFrame extends JFrame
             {
                 // Save window size
                 Dimension size = getSize();
-                USER_PREFS.putInt("frameWidth", size.width);
-                USER_PREFS.putInt("frameHeight", size.height);
+                USER_PREFS.putInt(FRAME_WIDTH_PREF, size.width);
+                USER_PREFS.putInt(FRAME_HEIGHT_PREF, size.height);
+
+                USER_PREFS.putInt(TABLE_SPLITTER_POS_PREF,
+                                  mDataProgressSplitter.getDividerLocation());
+                USER_PREFS.putInt(TREE_SPLITTER_POS_PREF,
+                                  mTreeSplitter.getDividerLocation());
 
                 mDatabaseDriverField.saveContents();
                 mConnectInfo.saveContents();
@@ -78,11 +95,32 @@ public class MainFrame extends JFrame
         JRootPane rootPane = getRootPane();
         rootPane.setLayout(new BorderLayout());
         mProgressArea = new ProgressArea();
+
+
+        mStatusBar = new StatusBar();
+        rootPane.add(mStatusBar, BorderLayout.SOUTH);
+
         mNavigationTree = new NavigationTree(mProgressArea);
-        JSplitPane splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                             new JScrollPane(mNavigationTree),
-                                             mProgressArea);
-        rootPane.add(splitter, BorderLayout.CENTER);
+        //Listen for when the selection changes.
+        setTreeSelectionHandler();
+        mSelectionInfoPane = new SelectionInfoPane(mProgressArea, mStatusBar);
+        mDataProgressSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                                   mProgressArea,
+                                   mSelectionInfoPane);
+        int splitterPos = USER_PREFS.getInt(TABLE_SPLITTER_POS_PREF, -1);
+        if (splitterPos != -1)
+        {
+            mDataProgressSplitter.setDividerLocation(splitterPos);
+        }
+        mTreeSplitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                                 new JScrollPane(mNavigationTree),
+                                                 mDataProgressSplitter);
+        splitterPos = USER_PREFS.getInt(TREE_SPLITTER_POS_PREF, -1);
+        if (splitterPos != -1)
+        {
+            mTreeSplitter.setDividerLocation(splitterPos);
+        }
+        rootPane.add(mTreeSplitter, BorderLayout.CENTER);
         Box topPart = Box.createVerticalBox();
         mDatabaseDriverField = new DatabaseDriverField(mProgressArea);
         topPart.add(mDatabaseDriverField);
@@ -109,6 +147,48 @@ public class MainFrame extends JFrame
         });
         topPart.add(mExecuteButton);
         rootPane.add(topPart, BorderLayout.NORTH);
+    }
+
+    private void setTreeSelectionHandler()
+    {
+        mNavigationTree.addTreeSelectionListener(new TreeSelectionListener()
+        {
+            public void valueChanged(TreeSelectionEvent e)
+            {
+                TreePath path = mNavigationTree.getSelectionPath();
+                if (path == null)
+                {
+                    return;
+                }
+
+                TreeNode node = (TreeNode)path.getLastPathComponent();
+
+                if (node instanceof TableNode)
+                {
+                    TableNode tableNode = ((TableNode)node);
+                    String tableName = tableNode.getTableName();
+                    String scheme = tableNode.getScheme();
+                    String catalogName = tableNode.getCatalogName();
+
+                    mSelectionInfoPane.displayTable(mConnection, scheme,
+                                            catalogName, tableName);
+                }
+                else if (node instanceof CatalogNode)
+                {
+                    CatalogNode catalogNode = ((CatalogNode)node);
+                    String catalogName = catalogNode.getCatalogName();
+
+                    mProgressArea.appendProgress("Selected catalog "+
+                                                 catalogName);
+                }
+                else
+                {
+                    mProgressArea.appendProgress("Selected "+
+                                                 node.getClass().getName() +
+                                                 " - "+node.toString());
+                }
+            }
+        });
     }
 
     private void executeSQL()

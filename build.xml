@@ -1,0 +1,10 @@
+<project default="dist" basedir=".">
+    <target name="dist">
+        <javac srcdir="${basedir}/src"
+             destdir="${basedir}/build"/>
+
+        <jar basedir="${basedir}/build"
+            jarfile="${basedir}/dist/databasetool.jar"
+            manifest="${basedir}/etc/databasetool.mf" />
+    </target>
+</project>

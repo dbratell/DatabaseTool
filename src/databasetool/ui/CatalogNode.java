@@ -48,10 +48,13 @@ public class CatalogNode implements TreeNode
             ResultSet tables = meta.getTables(mCatalogName, null, null, null);
             //ResultSet tables = meta.getTables(mCatalogName, "", "", null);
             ArrayList tableNames = new ArrayList();
+            ArrayList tableTypes = new ArrayList();
             while(tables.next())
             {
                 String tableName = tables.getString(3);
                 tableNames.add(tableName);
+                String tableType = tables.getString(4);
+                tableTypes.add(tableType);
             }
             tables.close();
 
@@ -59,7 +62,8 @@ public class CatalogNode implements TreeNode
             for (int i = 0; i < mTables.length; i++)
             {
                 mTables[i] = new TableNode(mNavigationTreeModel, this,
-                                           (String)tableNames.get(i));
+                                           (String)tableNames.get(i),
+                                           (String)tableTypes.get(i));
             }
         }
         catch (SQLException e)
@@ -141,6 +145,11 @@ public class CatalogNode implements TreeNode
     }
 
     public String toString()
+    {
+        return mCatalogName;
+    }
+
+    public String getCatalogName()
     {
         return mCatalogName;
     }
