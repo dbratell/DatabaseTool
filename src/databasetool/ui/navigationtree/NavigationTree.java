@@ -1,4 +1,6 @@
-package databasetool.ui;
+package databasetool.ui.navigationtree;
+
+import databasetool.ui.ProgressArea;
 
 import javax.swing.JTree;
 import javax.swing.tree.TreeSelectionModel;

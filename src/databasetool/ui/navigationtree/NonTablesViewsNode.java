@@ -1,4 +1,4 @@
-package databasetool.ui;
+package databasetool.ui.navigationtree;
 
 import java.util.ArrayList;
 import java.sql.Connection;
@@ -6,9 +6,10 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ViewsNode extends AbstractTablesTypeNode
+public class NonTablesViewsNode extends AbstractTablesTypeNode
 {
-    public ViewsNode(NavigationTreeModel navigationTreeModel,
+
+    public NonTablesViewsNode(NavigationTreeModel navigationTreeModel,
                        CatalogNode parent, String catalogName)
     {
         super(navigationTreeModel, parent, catalogName);
@@ -32,7 +33,7 @@ public class ViewsNode extends AbstractTablesTypeNode
             while(tables.next())
             {
                 String tableType = tables.getString(4);
-                if (isViewType(tableType))
+                if (!isTableType(tableType) && !isViewType(tableType))
                 {
                     String tableName = tables.getString(3);
                     tableNames.add(tableName);
@@ -58,6 +59,7 @@ public class ViewsNode extends AbstractTablesTypeNode
 
     public String toString()
     {
-        return "Views";
+        return "Other objects";
     }
+
 }

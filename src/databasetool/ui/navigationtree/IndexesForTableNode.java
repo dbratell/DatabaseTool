@@ -1,16 +1,16 @@
-package databasetool.ui;
+package databasetool.ui.navigationtree;
 
 import javax.swing.tree.TreeNode;
 import java.util.Enumeration;
 
-public class TableNode implements TreeNode
+public class IndexesForTableNode implements TreeNode
 {
     private String mTableName;
     private NavigationTreeModel mNavigationTreeModel;
     private TreeNode mParent;
     private String mTableType;
 
-    public TableNode(NavigationTreeModel navigationTreeModel,
+    public IndexesForTableNode(NavigationTreeModel navigationTreeModel,
                      TreeNode parent, String tableName, String tableType)
     {
         mNavigationTreeModel = navigationTreeModel;
@@ -42,7 +42,7 @@ public class TableNode implements TreeNode
      */
     public TreeNode getParent()
     {
-        return null;
+        return mParent;
     }
 
     public int getIndex(TreeNode treeNode)
@@ -76,9 +76,8 @@ public class TableNode implements TreeNode
 
     public String toString()
     {
-        return mTableName + " (" + mTableType + ")";
+        return "Index";
     }
-
     public String getTableName()
     {
         return mTableName;

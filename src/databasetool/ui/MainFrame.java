@@ -1,5 +1,12 @@
 package databasetool.ui;
 
+import databasetool.ui.navigationtree.CatalogNode;
+import databasetool.ui.navigationtree.NavigationTree;
+import databasetool.ui.navigationtree.TableNode;
+import databasetool.ui.navigationtree.IndexesForTableNode;
+import databasetool.ui.navigationtree.ColumnsForTableNode;
+import databasetool.ui.navigationtree.ConstraintsForTableNode;
+
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
@@ -25,6 +32,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLWarning;
+import java.sql.DatabaseMetaData;
 
 /**
  * @author Daniel Bratell
@@ -173,6 +181,39 @@ public class MainFrame extends JFrame
                     mSelectionInfoPane.displayTable(mConnection, scheme,
                                             catalogName, tableName);
                 }
+                else if (node instanceof IndexesForTableNode)
+                {
+                    IndexesForTableNode indexNode = (IndexesForTableNode)node;
+                    String catalogName = indexNode.getCatalogName();
+                    String schemeName = indexNode.getScheme();
+                    String tableName = indexNode.getTableName();
+
+                    mProgressArea.appendProgress("Selected indexes for table "+
+                                                 tableName);
+                    readIndexes(catalogName, schemeName, tableName);
+                }
+                else if (node instanceof ConstraintsForTableNode)
+                {
+                    ConstraintsForTableNode indexNode = (ConstraintsForTableNode)node;
+                    String catalogName = indexNode.getCatalogName();
+                    String schemeName = indexNode.getScheme();
+                    String tableName = indexNode.getTableName();
+
+                    mProgressArea.appendProgress("Selected constraints for table "+
+                                                 tableName);
+                    readConstraints(catalogName, schemeName, tableName);
+                }
+                else if (node instanceof ColumnsForTableNode)
+                {
+                    ColumnsForTableNode indexNode = (ColumnsForTableNode)node;
+                    String catalogName = indexNode.getCatalogName();
+                    String schemeName = indexNode.getScheme();
+                    String tableName = indexNode.getTableName();
+
+                    mProgressArea.appendProgress("Selected columns for table "+
+                                                 tableName);
+                    readColumns(catalogName, schemeName, tableName);
+                }
                 else if (node instanceof CatalogNode)
                 {
                     CatalogNode catalogNode = ((CatalogNode)node);
@@ -189,6 +230,86 @@ public class MainFrame extends JFrame
                 }
             }
         });
+    }
+
+    private void readConstraints(String catalogName, String schemeName,
+                             String tableName)
+    {
+        mProgressArea.appendProgress("Not implemented");
+    }
+
+    private void readColumns(String catalogName, String schemeName,
+                             String tableName)
+    {
+        mProgressArea.appendProgress("Not implemented");
+    }
+
+    private void readIndexes(String catalogName, String schemeName,
+                             String tableName)
+    {
+        try
+        {
+            DatabaseMetaData metaData = mConnection.getMetaData();
+            ResultSet rs = metaData.getIndexInfo(catalogName, schemeName,
+                                                 tableName, false, true);
+            while (rs.next())
+            {
+                short type = rs.getShort(7);
+                String column = rs.getString(9);
+
+                String text;
+                if (type == DatabaseMetaData.tableIndexStatistic)
+                {
+                    int cardinality = rs.getInt(11);
+                    int pages = rs.getInt(12);
+                    if (column != null)
+                    {
+                        text = "Statistics for column "+column+
+                               ": cardinality: "+cardinality+
+                           ", pages: "+pages;
+                    }
+                    else
+                    {
+                        text = "Statistics: cardinality: "+cardinality+
+                           ", pages: "+pages;
+                    }
+                }
+                else
+                {
+                    boolean unique = rs.getBoolean(4);
+                    String name = rs.getString(6);
+                    text = "Index "+name+" at column "+column + " " +
+                                  (unique ? "unique" : "not unique") + " type: " +
+                                  indexTypeToString(type);
+                }
+                mProgressArea.appendProgress(text);
+            }
+            rs.close();
+
+
+
+        }
+        catch (SQLException e)
+        {
+            mProgressArea.appendProgress(e);
+        }
+    }
+
+    private String indexTypeToString(short type)
+    {
+        switch (type)
+        {
+            case DatabaseMetaData.tableIndexClustered:
+                return "clustered";
+            case DatabaseMetaData.tableIndexHashed:
+                return "hashed";
+            case DatabaseMetaData.tableIndexOther:
+                return "other";
+            case DatabaseMetaData.tableIndexStatistic:
+                return "statistic";
+            default:
+                return "unknown (" + type + ")";
+        }
     }
 
     private void executeSQL()

@@ -1,30 +1,25 @@
-package databasetool.ui;
+package databasetool.ui.navigationtree;
 
 import javax.swing.tree.TreeNode;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Bratell
- * Date: 2003-aug-12
- * Time: 21:15:30
- * To change this template use Options | File Templates.
- */
-public abstract class AbstractTablesTypeNode implements TreeNode
+public class CatalogNode implements TreeNode
 {
-    private final CatalogNode mParent;
-    protected final NavigationTreeModel mNavigationTreeModel;
-    protected final String mCatalogName;
-    protected TableNode[] mTables;
+    private RootNode mParent;
+    private String mCatalogName;
+    private TreeNode[] mChildren;
 
-    public AbstractTablesTypeNode(NavigationTreeModel navigationTreeModel,
-                                  CatalogNode parent,
-                                  String catalogName)
+    public CatalogNode(NavigationTreeModel navigationTreeModel,
+                       RootNode parent, String catalogName)
     {
-        mNavigationTreeModel = navigationTreeModel;
+        mChildren = new TreeNode[3];
+        mChildren[0] = new TablesNode(navigationTreeModel, this, catalogName);
+        mChildren[1] = new ViewsNode(navigationTreeModel, this, catalogName);
+        mChildren[2] = new NonTablesViewsNode(navigationTreeModel, this, catalogName);
         mParent = parent;
         mCatalogName = catalogName;
+
     }
 
     /**
@@ -33,11 +28,8 @@ public abstract class AbstractTablesTypeNode implements TreeNode
      */
     public TreeNode getChildAt(int childIndex)
     {
-        ensureChildren();
-        return mTables[childIndex];
+        return mChildren[childIndex];
     }
-
-    protected abstract void ensureChildren();
 
     /**
      * Returns the number of children <code>TreeNode</code>s the receiver
@@ -45,8 +37,7 @@ public abstract class AbstractTablesTypeNode implements TreeNode
      */
     public int getChildCount()
     {
-        ensureChildren();
-        return mTables.length;
+        return mChildren.length;
     }
 
     /**
@@ -59,11 +50,9 @@ public abstract class AbstractTablesTypeNode implements TreeNode
 
     public int getIndex(TreeNode treeNode)
     {
-        ensureChildren();
-
-        for (int i = 0; i < mTables.length; i++)
+        for (int i = 0; i < mChildren.length; i++)
         {
-            if (treeNode == mTables[i])
+            if (treeNode == mChildren[i])
             {
                 return i;
             }
@@ -92,37 +81,30 @@ public abstract class AbstractTablesTypeNode implements TreeNode
      */
     public Enumeration children()
     {
-        ensureChildren();
         return new Enumeration() {
             int i = 0;
             public boolean hasMoreElements()
             {
-                return i <= mTables.length;
+                return i <= mChildren.length;
             }
             public Object nextElement()
             {
-                if (i < mTables.length)
+                if (i < mChildren.length)
                 {
-                    return mTables[i++];
+                    return mChildren[i++];
                 }
                 throw new NoSuchElementException();
             }
         };
     }
 
-    public abstract String toString();
+    public String toString()
+    {
+        return mCatalogName;
+    }
 
     public String getCatalogName()
     {
         return mCatalogName;
-    }
-    protected boolean isTableType(String type)
-    {
-        return "TABLE".equals(type);
-    }
-
-    protected boolean isViewType(String type)
-    {
-        return "VIEW".equals(type);
     }
 }

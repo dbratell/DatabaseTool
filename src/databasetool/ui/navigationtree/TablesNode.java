@@ -1,4 +1,4 @@
-package databasetool.ui;
+package databasetool.ui.navigationtree;
 
 import java.util.ArrayList;
 import java.sql.Connection;
