@@ -46,11 +46,14 @@ public class MetaDataInfoPanel extends JPanel
             {
                 Method method = methods[i];
                 Class returnType = method.getReturnType();
-                if (returnType == Boolean.TYPE || returnType == Integer.TYPE)
+                if (returnType == Boolean.TYPE ||
+                    returnType == Integer.TYPE ||
+                    returnType == String.class)
                 {
                     String methodName = method.getName();
                     if (method.getParameterTypes().length == 0 &&
-                        !"hashCode".equals(methodName))
+                        !"hashCode".equals(methodName) &&
+                        !"toString".equals(methodName))
                     {
                         Object[] row = new Object[columnCount];
                         row[0] = methodName;
